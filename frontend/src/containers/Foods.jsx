@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import styled from 'styled-components';
 import { COLORS } from '../style_constants';
 import { LocalMallIcon } from '../components/Icons';
-
+import { FoodOrderDialog } from '../components/FoodOrderDialog';
 
 // reducers
 import {
@@ -107,6 +107,7 @@ export const Foods = ({
               <ItemWrapper key={food.id}>
                 <FoodWrapper
                   food={food}
+                  // フードitemクリック時にsetStateする
                   onClickFoodWrapper={(food) => setState({
                     ...state,
                     isOpenOrderDialog: true,
@@ -118,6 +119,17 @@ export const Foods = ({
             )
         }
       </FoodsList>
+      {
+        state.isOpenOrderDialog &&
+        <FoodOrderDialog
+          food={state.selectedFood}
+          isOpen={state.isOpenOrderDialog}
+          onClose={() => setState({
+            ...state,
+            isOpenOrderDialog: false,
+          })}
+        />
+      }
     </Fragment>
   )
 
