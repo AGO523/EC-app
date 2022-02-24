@@ -1,5 +1,11 @@
 import React, { Fragment, useEffect, useReducer, useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
+import { NewOrderConfirmDialog } from '../components/NewOrderConfirmDialog';
+
+import { postLineFoods, replaceLineFoods } from '../apis/line_foods';
+
+import { HTTP_STATUS_CODE } from '../constants';
+
 import styled from 'styled-components';
 import { COLORS } from '../style_constants';
 import { LocalMallIcon } from '../components/Icons';
@@ -58,15 +64,43 @@ export const Foods = ({
   match
 }) => {
   const [foodsState, dispatch] = useReducer(foodsReducer, foodsInitialState);
+
+  const history = useHistory(); //特定の関数の実行結果に応じてページ遷移をさせる
   const initialState = {
     isOpenOrderDialog: false,
     selectedFood: null,
     selectedFoodCount: 1,
-  }
+    isOpenNewOrderDialog: false,
+    existingResutaurautName: '',
+    newResutaurautName: '',
+  };
+
   const submitOrder = () => {
-    // 後ほど仮注文のAPIを実装します
-    console.log('登録ボタンが押された！')
-  }
+    postLineFoods({
+      foodId: state.selectedFood.id,
+      count: state.selectedFoodCount,
+    }).then(() => history.push('/orders'))
+      .catch((e) => {
+        if (e.response.status === HTTP_STATUS_CODE.NOT_ACCEPTABLE) {
+          setState({
+            ...state,
+            isOpenOrderDialog: false,
+            isOpenNewOrderDialog: true,
+            existingResutaurautName: e.response.data.existing_restaurant,
+            newResutaurautName: e.response.data.new_restaurant,
+          })
+        } else {
+          throw e;
+        }
+      })
+  };
+
+  const replaceOrder = () => {
+    replaceLineFoods({
+      foodId: state.selectedFood.id,
+      count: state.selectedFoodCount,
+    }).then(() => history.push('/orders'))
+  };
 
   const [state, setState] = useState(initialState);
 
@@ -145,6 +179,16 @@ export const Foods = ({
             selectedFood: null,
             selectedFoodCount: 1,
           })}
+        />
+      }
+      {
+        state.isOpenNewOrderDialog &&
+        <NewOrderConfirmDialog
+          isOpen={state.isOpenNewOrderDialog}
+          onClose={() => setState({ ...state, isOpenNewOrderDialog: false })}
+          existingResutaurautName={state.existingResutaurautName}
+          newResutaurautName={state.newResutaurautName}
+          onClickSubmit={() => replaceOrder()}
         />
       }
     </Fragment>
