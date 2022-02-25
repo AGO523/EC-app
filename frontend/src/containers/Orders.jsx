@@ -7,6 +7,9 @@ import {
   lineFoodsReducer,
 } from '../reducers/lineFoods';
 
+import { postOrder } from '../apis/orders';
+
+
 
 export const Orders = () => {
   const [state, dispatch] = useReducer(lineFoodsReducer, initialState);
@@ -24,6 +27,18 @@ export const Orders = () => {
       )
       .catch((e) => console.error(e));
   }, []);
+
+  const postLineFoods = () => {
+    dispatch({ type: state.lineFoodsActionTyps.POSTING });
+    postOrder({
+      line_food_ids: state.lineFoodsSummary.line_food_ids,
+    }).then(() => {
+      dispatch({ type: lineFoodsActionTyps.POST_SUCCESS });
+      // postLineFoods()関数の最後ではwindow.location.reload();とすることで、画面をリロード
+      window.location.reload();
+    });
+  };
+
 
   return (
     <Fragment>
