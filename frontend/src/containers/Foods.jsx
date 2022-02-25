@@ -1,12 +1,10 @@
 import React, { Fragment, useEffect, useReducer, useState } from 'react';
 import { Link, useHistory } from "react-router-dom";
-import { NewOrderConfirmDialog } from '../components/NewOrderConfirmDialog';
-
-import { postLineFoods, replaceLineFoods } from '../apis/line_foods';
-
-import { HTTP_STATUS_CODE } from '../constants';
-
 import styled from 'styled-components';
+
+import { NewOrderConfirmDialog } from '../components/NewOrderConfirmDialog';
+import { postLineFoods, replaceLineFoods } from '../apis/line_foods';
+import { HTTP_STATUS_CODE } from '../constants';
 import { COLORS } from '../style_constants';
 import { LocalMallIcon } from '../components/Icons';
 import { FoodOrderDialog } from '../components/FoodOrderDialog';
@@ -63,9 +61,6 @@ const ItemWrapper = styled.div`
 export const Foods = ({
   match
 }) => {
-  const [foodsState, dispatch] = useReducer(foodsReducer, foodsInitialState);
-
-  const history = useHistory(); //特定の関数の実行結果に応じてページ遷移をさせる
   const initialState = {
     isOpenOrderDialog: false,
     selectedFood: null,
@@ -74,6 +69,22 @@ export const Foods = ({
     existingResutaurautName: '',
     newResutaurautName: '',
   };
+  const [foodsState, dispatch] = useReducer(foodsReducer, foodsInitialState);
+  const history = useHistory(); //特定の関数の実行結果に応じてページ遷移をさせる
+  const [state, setState] = useState(initialState);
+
+  useEffect(() => {
+    dispatch({ type: foodsActionTyps.FETCHING });
+    fetchFoods(match.params.restaurantsId)
+      .then((data) =>
+        dispatch({
+          type: foodsActionTyps.FETCH_SUCCESS,
+          payload: {
+            foods: data.foods
+          }
+        })
+      )
+  }, [])
 
   const submitOrder = () => {
     postLineFoods({
@@ -102,20 +113,6 @@ export const Foods = ({
     }).then(() => history.push('/orders'))
   };
 
-  const [state, setState] = useState(initialState);
-
-  useEffect(() => {
-    dispatch({ type: foodsActionTyps.FETCHING });
-    fetchFoods(match.params.restaurantsId)
-      .then((data) =>
-        dispatch({
-          type: foodsActionTyps.FETCH_SUCCESS,
-          payload: {
-            foods: data.foods
-          }
-        })
-      )
-  }, [])
 
   return (
     <Fragment>
